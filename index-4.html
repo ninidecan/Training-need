@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสำรวจความต้องการศึกษาต่อเนื่องบุคลากรทางการพยาบาล</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a5f',
+            'primary-dark': '#152a45',
+            'primary-light': '#2d5a8a',
+            accent: '#4a90d9',
+            success: '#10b981',
+            danger: '#ef4444',
+            warning: '#f59e0b'
+          },
+          fontFamily: {
+            kanit: ['Kanit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="h-full bg-gray-50">
+  <div id="app" class="h-full overflow-auto scrollbar-thin">
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 gradient-bg flex items-center justify-center z-50">
+      <div class="text-center text-white">
+        <div class="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-lg">กำลังโหลดระบบ...</p>
+        <p class="text-sm text-blue-200 mt-2">กำลังเชื่อมต่อ Google Sheets...</p>
+      </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="hidden min-h-full">
+      <div class="gradient-bg min-h-full flex flex-col">
+        <!-- Header -->
+        <header class="py-6 px-4 text-center">
+          <div class="max-w-4xl mx-auto">
+            <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+              <svg class="w-12 h-12 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">ระบบสำรวจความต้องการศึกษาต่อเนื่อง</h1>
+            <p class="text-blue-200 text-sm md:text-base">Continuing Nursing Education Needs Assessment System</p>
+            <p class="text-blue-300 text-xs mt-2">📊 เชื่อมต่อ Google Sheets</p>
+          </div>
+        </header>
+
+        <!-- Role Selection -->
+        <main class="flex-1 px-4 py-8">
+          <div class="max-w-4xl mx-auto">
+            <h2 class="text-white text-center text-xl mb-8 font-medium">เลือกบทบาทของคุณ</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Ward Role -->
+              <div class="card-hover bg-white rounded-2xl p-6 shadow-xl cursor-pointer" onclick="selectRole('ward')">
+                <div class="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-primary text-center mb-2">หอผู้ป่วย</h3>
+                <p class="text-gray-500 text-sm text-center">กรอกข้อมูลศักยภาพและความต้องการ</p>
+              </div>
+              <!-- Group Role -->
+              <div class="card-hover bg-white rounded-2xl p-6 shadow-xl cursor-pointer" onclick="selectRole('group')">
+                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-green-600 text-center mb-2">กลุ่มงาน</h3>
+                <p class="text-gray-500 text-sm text-center">ดูภาพรวมและอนุมัติความต้องการ</p>
+              </div>
+              <!-- Admin Role -->
+              <div class="card-hover bg-white rounded-2xl p-6 shadow-xl cursor-pointer" onclick="selectRole('admin')">
+                <div class="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-purple-600 text-center mb-2">Admin</h3>
+                <p class="text-gray-500 text-sm text-center">จัดการระบบและดู Dashboard รวม</p>
+              </div>
+            </div>
+
+            <!-- Selection Dropdown -->
+            <div id="selectionArea" class="hidden mt-8 fade-in">
+              <div class="bg-white rounded-2xl p-6 shadow-xl max-w-md mx-auto">
+                <h3 id="selectionTitle" class="text-lg font-semibold text-primary mb-4"></h3>
+                <select id="selectionDropdown" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary transition-colors">
+                  <option value="">-- กรุณาเลือก --</option>
+                </select>
+                <button onclick="confirmLogin()" class="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3 rounded-xl font-medium transition-colors">
+                  เข้าสู่ระบบ
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="py-4 text-center text-blue-200 text-sm">
+          <p>&copy; 2024 Continuing Nursing Education System | Google Sheets Backend</p>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- WARD DASHBOARD -->
+    <!-- ============================================ -->
+    <div id="wardDashboard" class="hidden min-h-full bg-gray-50">
+      <!-- Navbar -->
+      <nav class="gradient-bg text-white px-4 py-3 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <button onclick="logout()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div>
+              <h1 class="font-semibold text-lg">หอผู้ป่วย</h1>
+              <p id="wardNameDisplay" class="text-sm text-blue-200"></p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="showWardDashboardView()" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">📊 Dashboard</button>
+            <button onclick="exportWardExcel()" class="px-3 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm transition-colors">📥 Export</button>
+          </div>
+        </div>
+      </nav>
+
+      <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Section Tabs -->
+        <div class="bg-white rounded-xl shadow-sm mb-6 p-1 flex overflow-x-auto">
+          <button onclick="showWardSection(1)" id="wardTab1" class="flex-1 min-w-max px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-primary text-white">ข้อมูลทั่วไป</button>
+          <button onclick="showWardSection(2)" id="wardTab2" class="flex-1 min-w-max px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">ศักยภาพปัจจุบัน</button>
+          <button onclick="showWardSection(3)" id="wardTab3" class="flex-1 min-w-max px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">ความต้องการศึกษาต่อเนื่อง</button>
+        </div>
+
+        <!-- Section 1: General Info -->
+        <div id="wardSection1" class="fade-in">
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-primary mb-6 flex items-center">
+              <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm mr-3">1</span>
+              ข้อมูลทั่วไป - จำนวนบุคลากร
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="p-4 border-2 border-gray-100 rounded-xl hover:border-primary/30 transition-colors">
+                <label class="block text-sm font-medium text-gray-600 mb-2">พยาบาลวิชาชีพ</label>
+                <div class="flex items-center">
+                  <input type="number" id="staffRN" min="0" value="0" onchange="calculatePotential()" class="flex-1 p-3 border border-gray-200 rounded-lg text-lg font-semibold text-center focus:border-primary">
+                  <span class="ml-2 text-gray-500">คน</span>
+                </div>
+              </div>
+              <div class="p-4 border-2 border-gray-100 rounded-xl hover:border-primary/30 transition-colors">
+                <label class="block text-sm font-medium text-gray-600 mb-2">ผู้ช่วยพยาบาล</label>
+                <div class="flex items-center">
+                  <input type="number" id="staffPN" min="0" value="0" onchange="calculatePotential()" class="flex-1 p-3 border border-gray-200 rounded-lg text-lg font-semibold text-center focus:border-primary">
+                  <span class="ml-2 text-gray-500">คน</span>
+                </div>
+              </div>
+              <div class="p-4 border-2 border-gray-100 rounded-xl hover:border-primary/30 transition-colors">
+                <label class="block text-sm font-medium text-gray-600 mb-2">ผู้ช่วยเหลือคนไข้</label>
+                <div class="flex items-center">
+                  <input type="number" id="staffNA" min="0" value="0" onchange="calculatePotential()" class="flex-1 p-3 border border-gray-200 rounded-lg text-lg font-semibold text-center focus:border-primary">
+                  <span class="ml-2 text-gray-500">คน</span>
+                </div>
+              </div>
+              <div class="p-4 border-2 border-gray-100 rounded-xl hover:border-primary/30 transition-colors">
+                <label class="block text-sm font-medium text-gray-600 mb-2">พนักงานช่วยการพยาบาล</label>
+                <div class="flex items-center">
+                  <input type="number" id="staffAide" min="0" value="0" onchange="calculatePotential()" class="flex-1 p-3 border border-gray-200 rounded-lg text-lg font-semibold text-center focus:border-primary">
+                  <span class="ml-2 text-gray-500">คน</span>
+                </div>
+              </div>
+              <div class="p-4 border-2 border-gray-100 rounded-xl hover:border-primary/30 transition-colors md:col-span-2">
+                <label class="block text-sm font-medium text-gray-600 mb-2">อื่น ๆ</label>
+                <div class="flex items-center space-x-2">
+                  <input type="text" id="staffOtherName" placeholder="ระบุตำแหน่ง" class="flex-1 p-3 border border-gray-200 rounded-lg focus:border-primary">
+                  <input type="number" id="staffOther" min="0" value="0" onchange="calculatePotential()" class="w-24 p-3 border border-gray-200 rounded-lg text-lg font-semibold text-center focus:border-primary">
+                  <span class="text-gray-500">คน</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 p-4 bg-primary/5 rounded-xl">
+              <div class="flex items-center justify-between">
+                <span class="font-medium text-primary">รวมบุคลากรทั้งหมด</span>
+                <span id="totalStaff" class="text-2xl font-bold text-primary">0 คน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Current Potential -->
+        <div id="wardSection2" class="hidden fade-in">
+          <div class="space-y-6">
+            <!-- 2.1 Specialty 4 months -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs mr-2">2.1</span>
+                หลักสูตรเฉพาะทาง (4 เดือน)
+              </h3>
+              <div id="specialty4MonthList" class="space-y-3"></div>
+              <button onclick="addSpecialtyCourse('4month')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตร</button>
+              <div class="mt-4 grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                <div class="text-center"><p class="text-sm text-gray-500">จบแล้ว</p><p id="total4MonthCompleted" class="text-xl font-bold text-green-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">กำลังเรียน</p><p id="total4MonthStudying" class="text-xl font-bold text-blue-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">รวม</p><p id="total4MonthAll" class="text-xl font-bold text-primary">0</p></div>
+              </div>
+            </div>
+            <!-- 2.2 Short Courses -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs mr-2">2.2</span>
+                หลักสูตรระยะสั้น (1 สัปดาห์ – &lt; 4 เดือน)
+              </h3>
+              <div id="shortCourseList" class="space-y-3"></div>
+              <button onclick="addSpecialtyCourse('short')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตร</button>
+              <div class="mt-4 grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                <div class="text-center"><p class="text-sm text-gray-500">จบแล้ว</p><p id="totalShortCompleted" class="text-xl font-bold text-green-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">กำลังเรียน</p><p id="totalShortStudying" class="text-xl font-bold text-blue-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">รวม</p><p id="totalShortAll" class="text-xl font-bold text-primary">0</p></div>
+              </div>
+            </div>
+            <!-- 2.3 Graduate -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs mr-2">2.3</span>
+                ระดับบัณฑิตศึกษา
+              </h3>
+              <div id="graduateList" class="space-y-3"></div>
+              <button onclick="addSpecialtyCourse('graduate')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตร</button>
+              <div class="mt-4 grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                <div class="text-center"><p class="text-sm text-gray-500">จบแล้ว</p><p id="totalGradCompleted" class="text-xl font-bold text-green-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">กำลังเรียน</p><p id="totalGradStudying" class="text-xl font-bold text-blue-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">รวม</p><p id="totalGradAll" class="text-xl font-bold text-primary">0</p></div>
+              </div>
+            </div>
+            <!-- 2.4 Practical Nurse -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs mr-2">2.4</span>
+                ผู้ช่วยพยาบาล
+              </h3>
+              <div id="practicalNurseList" class="space-y-3"></div>
+              <button onclick="addSpecialtyCourse('practical')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตร</button>
+              <div class="mt-4 grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                <div class="text-center"><p class="text-sm text-gray-500">จบแล้ว</p><p id="totalPracticalCompleted" class="text-xl font-bold text-green-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">กำลังเรียน</p><p id="totalPracticalStudying" class="text-xl font-bold text-blue-600">0</p></div>
+                <div class="text-center"><p class="text-sm text-gray-500">รวม</p><p id="totalPracticalAll" class="text-xl font-bold text-primary">0</p></div>
+              </div>
+            </div>
+            <!-- 2.5 Summary -->
+            <div class="bg-gradient-to-br from-primary to-primary-light rounded-2xl shadow-lg p-6 text-white">
+              <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <span class="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-xs mr-2">2.5</span>
+                สรุปศักยภาพ (หลักสูตรเฉพาะทาง 4 เดือน)
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white/10 rounded-xl p-4">
+                  <p class="text-sm text-blue-200">ศักยภาพปัจจุบัน</p>
+                  <p id="currentPotentialPercent" class="text-3xl font-bold">0%</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                  <p class="text-sm text-blue-200">เกณฑ์ที่ต้องมี</p>
+                  <p id="requiredPercent" class="text-3xl font-bold">33.33%</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                  <p class="text-sm text-blue-200">สถานะ</p>
+                  <div id="potentialStatus" class="mt-1"></div>
+                </div>
+              </div>
+              <div id="potentialGap" class="mt-4 p-4 bg-white/10 rounded-xl hidden">
+                <p class="text-sm text-blue-200 mb-1">ต้องเพิ่มอีก</p>
+                <p class="text-xl font-bold"><span id="gapPercent">0</span>% (<span id="gapPeople">0</span> คน)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Education Needs -->
+        <div id="wardSection3" class="hidden fade-in">
+          <div class="space-y-6">
+            <!-- 3.1 Specialty Needs -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs mr-2">3.1</span>
+                ความต้องการหลักสูตรเฉพาะทาง (4 เดือน)
+              </h3>
+              <div id="need4MonthList" class="space-y-4"></div>
+              <button onclick="addNeedCourse('4month')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตรที่ต้องการ</button>
+              <div class="mt-4 p-4 bg-blue-50 rounded-xl">
+                <div class="flex items-center justify-between mb-2"><span class="text-sm text-gray-600">รวมความต้องการ</span><span id="totalNeed4Month" class="font-bold text-primary">0 คน</span></div>
+                <div class="flex items-center justify-between"><span class="text-sm text-gray-600">ศักยภาพใหม่ (หากได้รับอนุมัติ)</span><span id="newPotential4Month" class="font-bold text-green-600">0%</span></div>
+              </div>
+            </div>
+            <!-- 3.2 Short Course Needs -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs mr-2">3.2</span>
+                ความต้องการหลักสูตรระยะสั้น
+              </h3>
+              <div id="needShortList" class="space-y-4"></div>
+              <button onclick="addNeedCourse('short')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตรที่ต้องการ</button>
+              <div class="mt-4 p-4 bg-green-50 rounded-xl">
+                <div class="flex items-center justify-between"><span class="text-sm text-gray-600">รวมความต้องการ</span><span id="totalNeedShort" class="font-bold text-green-600">0 คน</span></div>
+              </div>
+            </div>
+            <!-- 3.3 Graduate Needs -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs mr-2">3.3</span>
+                ความต้องการระดับบัณฑิตศึกษา
+              </h3>
+              <div id="needGradList" class="space-y-4"></div>
+              <button onclick="addNeedCourse('graduate')" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มหลักสูตรที่ต้องการ</button>
+              <div class="mt-4 p-4 bg-purple-50 rounded-xl">
+                <div class="flex items-center justify-between"><span class="text-sm text-gray-600">รวมความต้องการ</span><span id="totalNeedGrad" class="font-bold text-purple-600">0 คน</span></div>
+              </div>
+            </div>
+            <!-- 3.4 Practical Nurse Needs -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+                <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs mr-2">3.4</span>
+                ความต้องการหลักสูตรผู้ช่วยพยาบาล
+              </h3>
+              <div id="needPracticalList" class="space-y-3"></div>
+              <button onclick="addPracticalNurseNeed()" class="mt-4 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors">+ เพิ่มชื่อบุคลากร</button>
+              <div class="mt-4 p-4 bg-orange-50 rounded-xl">
+                <div class="flex items-center justify-between"><span class="text-sm text-gray-600">รวมความต้องการ</span><span id="totalNeedPractical" class="font-bold text-orange-600">0 คน</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="fixed bottom-6 right-6 z-30">
+          <button onclick="saveWardData()" id="saveWardBtn" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2 transition-all hover:scale-105">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>บันทึกข้อมูล</span>
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- GROUP DASHBOARD -->
+    <!-- ============================================ -->
+    <div id="groupDashboard" class="hidden min-h-full bg-gray-50">
+      <nav class="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <button onclick="logout()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div>
+              <h1 class="font-semibold text-lg">กลุ่มงาน</h1>
+              <p id="groupNameDisplay" class="text-sm text-green-200"></p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="showGroupCharts()" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">📊 Dashboard</button>
+            <button onclick="exportGroupExcel()" class="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-sm transition-colors">📥 Export</button>
+          </div>
+        </div>
+      </nav>
+      <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="bg-white rounded-xl shadow-sm mb-6 p-1 flex">
+          <button onclick="showGroupSection(1)" id="groupTab1" class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-green-600 text-white">ศักยภาพรวม</button>
+          <button onclick="showGroupSection(2)" id="groupTab2" class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">ความต้องการศึกษาต่อเนื่อง</button>
+        </div>
+        <!-- Group Section 1 -->
+        <div id="groupSection1" class="fade-in space-y-6">
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-green-700 mb-6">ศักยภาพรวมของหอผู้ป่วยในกลุ่มงาน</h2>
+            <div id="groupPotentialSummary" class="space-y-4"></div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">ศักยภาพเฉพาะทางตามหอผู้ป่วย</h3>
+              <canvas id="groupBarChart"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">ภาพรวมศักยภาพกลุ่มงาน</h3>
+              <canvas id="groupPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Group Section 2 -->
+        <div id="groupSection2" class="hidden fade-in">
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-green-700 mb-6">สรุปความต้องการศึกษาต่อเนื่อง</h2>
+            <div id="groupNeedsSummary" class="space-y-6"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ADMIN DASHBOARD -->
+    <!-- ============================================ -->
+    <div id="adminDashboard" class="hidden min-h-full bg-gray-50">
+      <nav class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <button onclick="logout()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div>
+              <h1 class="font-semibold text-lg">Admin Dashboard</h1>
+              <p class="text-sm text-purple-200">ภาพรวมทั้งองค์กร</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="refreshAdminData()" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">🔄 Refresh</button>
+            <button onclick="exportAdminExcel()" class="px-3 py-2 bg-violet-500 hover:bg-violet-600 rounded-lg text-sm transition-colors">📥 Export All</button>
+          </div>
+        </div>
+      </nav>
+      <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="bg-white rounded-xl shadow-sm mb-6 p-1 flex">
+          <button onclick="showAdminSection(1)" id="adminTab1" class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-purple-600 text-white">ภาพรวมองค์กร</button>
+          <button onclick="showAdminSection(2)" id="adminTab2" class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">ความต้องการทั้งหมด</button>
+          <button onclick="showAdminSection(3)" id="adminTab3" class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100">Dashboard</button>
+        </div>
+        <!-- Admin Section 1 -->
+        <div id="adminSection1" class="fade-in space-y-6">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl shadow-sm p-4"><p class="text-sm text-gray-500">กลุ่มงานทั้งหมด</p><p id="adminTotalGroups" class="text-3xl font-bold text-purple-600">0</p></div>
+            <div class="bg-white rounded-2xl shadow-sm p-4"><p class="text-sm text-gray-500">หอผู้ป่วยทั้งหมด</p><p id="adminTotalWards" class="text-3xl font-bold text-blue-600">0</p></div>
+            <div class="bg-white rounded-2xl shadow-sm p-4"><p class="text-sm text-gray-500">พยาบาลทั้งหมด</p><p id="adminTotalNurses" class="text-3xl font-bold text-green-600">0</p></div>
+            <div class="bg-white rounded-2xl shadow-sm p-4"><p class="text-sm text-gray-500">ศักยภาพเฉลี่ย</p><p id="adminAvgPotential" class="text-3xl font-bold text-orange-600">0%</p></div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-purple-700 mb-6">ศักยภาพเฉพาะทางทุกหอผู้ป่วย</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b-2 border-gray-200">
+                    <th class="text-left py-3 px-4 text-gray-600 font-medium">กลุ่มงาน</th>
+                    <th class="text-left py-3 px-4 text-gray-600 font-medium">หอผู้ป่วย</th>
+                    <th class="text-center py-3 px-4 text-gray-600 font-medium">พยาบาล</th>
+                    <th class="text-center py-3 px-4 text-gray-600 font-medium">เฉพาะทาง</th>
+                    <th class="text-center py-3 px-4 text-gray-600 font-medium">ศักยภาพ</th>
+                    <th class="text-center py-3 px-4 text-gray-600 font-medium">เกณฑ์</th>
+                    <th class="text-center py-3 px-4 text-gray-600 font-medium">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody id="adminPotentialTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Admin Section 2 -->
+        <div id="adminSection2" class="hidden fade-in">
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-purple-700 mb-6">ความต้องการศึกษาต่อเนื่องทั้งองค์กร</h2>
+            <div id="adminAllDemands" class="space-y-6"></div>
+          </div>
+        </div>
+        <!-- Admin Section 3 -->
+        <div id="adminSection3" class="hidden fade-in space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">ศักยภาพตามกลุ่มงาน</h3>
+              <canvas id="adminGroupChart"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">สัดส่วนศักยภาพองค์กร</h3>
+              <canvas id="adminOrgPieChart"></canvas>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">ความต้องการรายหลักสูตร</h3>
+            <canvas id="adminDemandChart"></canvas>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg hidden z-50 transition-all">
+      <span id="toastMessage"></span>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+      <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-xl">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">ยืนยันการดำเนินการ</h3>
+        <p id="confirmMessage" class="text-gray-600 mb-4"></p>
+        <div class="flex space-x-3">
+          <button onclick="closeConfirmModal()" class="flex-1 py-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors">ยกเลิก</button>
+          <button id="confirmBtn" class="flex-1 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Load scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
