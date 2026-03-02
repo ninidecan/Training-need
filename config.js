@@ -3,7 +3,7 @@
 // ============================================
 
 // *** สำคัญ: ใส่ URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้ ***
-const API_URL = 'https://script.google.com/macros/s/AKfycbyw1hV-nIJigILIUu3nqIuZjydHVjadVvJA7y8zsDjqEYWFlsYCGl8GB8a4SMp33nta/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxPGBcV9iFKwZT603M4Wkaa3lDDT7QCpZQ5tnPBLaKjDuyCXqRW-8LjTXPJDdV3-wos/exec';
 
 // Master Data - Groups
 const GROUPS = [
